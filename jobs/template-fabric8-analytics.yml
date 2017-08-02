@@ -1,0 +1,85 @@
+- job-template:
+    name: '{project-name}-PRs'
+    project-type: pipeline
+    sandbox: true
+    concurrent: true
+    properties:
+      - github:
+          url: 'https://github.com/fabric8-analytics/{project-name}'
+    pipeline-scm:
+      scm:
+        - git:
+            url: 'https://github.com/fabric8-analytics/{project-name}.git'
+            clean: true
+            browser-url: 'https://github.com/fabric8-analytics/{project-name}'
+            name: origin
+            refspec: '+refs/pull/*:refs/remotes/origin/pr/*'
+            branches:
+              - '${{sha1}}'
+      script-path: Jenkinsfile
+    node: master
+    triggers:
+      - github-pull-request:
+          admin-list:
+            - msrb
+            - pkajaba
+            - tuxdna
+          cron: 'H/5 * * * *'
+          permit-all: false
+          trigger-phrase: '.*\[test\W+this\].*'
+          skip-build-phrase: '*\[skip\W+ci\].*'
+          org-list:
+            - fabric8-analytics
+          allow-whitelist-orgs-as-admins: true
+          github-hooks: false
+          auto-close-on-fail: false
+          auth-id: 'f8-analytics-gh'
+
+- job-template:
+    name: '{project-name}-master'
+    project-type: pipeline
+    sandbox: true
+    concurrent: false
+    properties:
+      - github:
+          url: 'https://github.com/fabric8-analytics/{project-name}'
+      - inject:
+          properties-content: |
+            BRANCH_NAME=master
+    pipeline-scm:
+      scm:
+        - git:
+            url: 'https://github.com/fabric8-analytics/{project-name}.git'
+            clean: true
+            browser-url: 'https://github.com/fabric8-analytics/{project-name}'
+            name: origin
+            refspec: '+refs/heads/*:refs/remotes/origin/*'
+            branches:
+              - 'origin/master'
+      script-path: Jenkinsfile
+    node: master
+    triggers:
+      - pollscm:
+          cron: 'H/5 * * * *'
+
+- project:
+    name: fabric8-analytics-projects
+    project-name:
+        - fabric8-analytics-common
+        - fabric8-analytics-jobs
+        - fabric8-analytics-recommender
+        - fabric8-analytics-worker
+        - fabric8-analytics-server
+        - fabric8-analytics-pgbouncer
+        - fabric8-analytics-cvedb-s3-dump-docker
+        - fabric8-analytics-data-model
+        - fabric8-analytics-license-check
+        - fabric8-analytics-stack-analysis
+        - fabric8-analytics-license-analysis
+        - mercator-go
+        - gremlin-docker
+        - anitya-docker
+    jobs:
+      - '{project-name}-master'
+      - '{project-name}-PRs'
+
