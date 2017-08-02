@@ -67,6 +67,7 @@
     project-name:
         - fabric8-analytics-common
         - fabric8-analytics-jobs
+        - fabric8-analytics-firehose-fetcher
         - fabric8-analytics-recommender
         - fabric8-analytics-worker
         - fabric8-analytics-server
